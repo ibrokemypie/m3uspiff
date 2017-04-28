@@ -7,12 +7,6 @@ from xml.etree.ElementTree import Element, SubElement, tostring
 from xml.dom import minidom
 
 
-# Require one argument
-if len(sys.argv) != 2:
-    print(sys.argv)
-    raise NameError('Please enter ONE argument')
-
-
 def parse_m3u(m3ufile, playlist):
     """Reads the lines of the input file"""
     track_list = SubElement(playlist, "trackList")
@@ -67,6 +61,11 @@ def write_file(m3ufile, playlist):
 
 def main():
     """Main function"""
+    # Require one argument
+    if len(sys.argv) != 2:
+        print(sys.argv)
+        raise NameError('Please enter ONE argument')
+
     playlist = Element("playlist")
     playlist.set("version", "1")
     playlist.set("xmlns", "http://xspf.org/ns/0/")
@@ -75,4 +74,5 @@ def main():
     write_file(argument, playlist)
 
 
-main()
+if __name__ == '__main__':
+    main()
