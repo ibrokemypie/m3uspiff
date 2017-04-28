@@ -22,6 +22,29 @@ def parse_m3u(m3ufile, playlist):
             mdata(line, track_element)
 
 
+def generate_subelement(track_element, tags, tag, decoded, linecheck):
+    """Generate the subelement of each tag"""
+    # Actual string to search for, formatted same (no whitespace)
+    tagstring = tag.replace(" ", "")+":"
+    if linecheck.startswith(tagstring):
+        # Remove found tag from list to prevent dupes
+        tags.remove(tag)
+
+        stringf = decoded.split(': ')[1]
+        # Name of XML sub-element is name of tag
+        treetag = tag
+
+        # Replace tag names acording to spec
+        if tag == "artist":
+            treetag = "creator"
+        if tag == "genre":
+            treetag = "info"
+
+        # Actually add the new sub-elements to tree
+        treetag = SubElement(track_element, treetag)
+        treetag.text = stringf.rstrip()
+
+
 def mdata(path, track_element):
     """Find the metadata of each accesible file, and format as XML."""
     # Define list of tags to search for
@@ -41,25 +64,8 @@ def mdata(path, track_element):
             linecheck = decoded.replace(" ", "")
             # Iterate over every tag
             for tag in tags:
-                # Actual string to search for, formatted same (no whitespace)
-                tagstring = tag.replace(" ", "")+":"
-                if linecheck.startswith(tagstring):
-                    # Remove found tag from list to prevent dupes
-                    tags.remove(tag)
-
-                    stringf = decoded.split(': ')[1]
-                    # Name of XML sub-element is name of tag
-                    treetag = tag
-
-                    # Replace tag names acording to spec
-                    if tag == "artist":
-                        treetag = "creator"
-                    if tag == "genre":
-                        treetag = "info"
-
-                    # Actually add the new sub-elements to tree
-                    treetag = SubElement(track_element, treetag)
-                    treetag.text = stringf.rstrip()
+                generate_subelement(track_element, tags, tag, decoded,
+                                    linecheck)
         else:
             break
 
