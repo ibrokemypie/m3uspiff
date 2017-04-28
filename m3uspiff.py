@@ -11,14 +11,14 @@ def parse_m3u(m3ufile, playlist):
     """Reads the lines of the input file"""
     track_list = SubElement(playlist, "trackList")
     for line in m3ufile:
-        # strip any of the extended m3u ickiness
+        # Strip any of the extended m3u ickiness
         if not line.lstrip().startswith('#'):
-            # create "track" subtree
+            # Create "track" subtree
             track_element = SubElement(track_list, "track")
-            # add location straight away
+            # Add location straight away
             location_element = SubElement(track_element, "location")
             location_element.text = line.rstrip()
-            # now find the other tags
+            # Now find the other tags
             mdata(line, track_element)
 
 
@@ -33,18 +33,22 @@ def mdata(path, track_element):
     # Main loop
     while True:
         out = process.stdout.readline()
+        # Decode "byte" to UTF-8 for python3
         decoded = out.decode('utf-8')
         if out != b'':
             linecheck = decoded.replace(" ", "")
             for tag in tags:
                 tagstring = tag+":"
-                if tagstring in linecheck:
+                if linecheck.startswith(tagstring):
                     stringf = decoded.split(': ')[1]
                     ttag = tag
+
+                    # Replace tag names acording to spec
                     if tag == "artist":
                         ttag = "creator"
                     if tag == "genre":
                         ttag = "info"
+
                     ttag = SubElement(track_element, ttag)
                     ttag.text = stringf.rstrip()
         else:
