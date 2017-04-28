@@ -10,7 +10,7 @@ from xml.dom import minidom
 def parse_m3u(m3ufile, playlist):
     """Reads the lines of the input file"""
     track_list = SubElement(playlist, "trackList")
-    for line in open(m3ufile):
+    for line in m3ufile:
         # strip any of the extended m3u ickiness
         if not line.lstrip().startswith('#'):
             # create "track" subtree
@@ -53,8 +53,13 @@ def mdata(path, track_element):
 
 def write_file(m3ufile, playlist):
     """Saves the string of the XML to the new XSPF file."""
+    # Create a string from the XML tree
     prettyxml = minidom.parseString(tostring(playlist, 'utf-8'))
+
+    # Create a file with same name and XSPF suffix
     new_file = open(m3ufile+".xspf", "w")
+
+    # Write the final string to the new file
     new_file.write(prettyxml.toprettyxml(indent="  "))
     new_file.close()
 
@@ -64,13 +69,20 @@ def main():
     # Require one argument
     if len(sys.argv) != 2:
         print(sys.argv)
-        raise NameError('Please enter ONE argument')
+        print("Please enter ONE argument", file=sys.stderr)
+        sys.exit(1)
 
+    argument = sys.argv[1]
+
+    # Set up XML root and namespace
     playlist = Element("playlist")
     playlist.set("version", "1")
     playlist.set("xmlns", "http://xspf.org/ns/0/")
-    argument = sys.argv[1]
-    parse_m3u(argument, playlist)
+
+    # Open the given file first, then give file object
+    with open(argument) as m3ufile:
+        parse_m3u(m3ufile, playlist)
+
     write_file(argument, playlist)
 
 
