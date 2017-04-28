@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Parse M3U playlists and generate XSPF playlist based on resolved tags."""
+from __future__ import print_function
 import sys
 import subprocess
 from xml.etree.ElementTree import Element, SubElement, tostring
@@ -8,7 +9,7 @@ from xml.dom import minidom
 
 # Require one argument
 if len(sys.argv) != 2:
-    print str(sys.argv)
+    print(sys.argv)
     raise NameError('Please enter ONE argument')
 
 
@@ -38,8 +39,9 @@ def mdata(path, track_element):
     # Main loop
     while True:
         out = process.stdout.readline()
+        decoded = out.decode('utf-8')
         if out != b'':
-            linecheck = out.replace(" ", "")
+            linecheck = decoded.replace(" ", "")
             for tag in tags:
                 tagstring = tag+":"
                 if tagstring in linecheck:

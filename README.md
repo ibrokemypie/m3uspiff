@@ -10,6 +10,6 @@ An M3U to XSPF playlist converter.
 Converts M3U format playlists into XSPF (XML Shareable Playlist Format) playlists, using FFMPEG's ffprobe to augment the new playlist with each included song's metadata when available.
 
 ## Requirements
-* python2
+* python
 
 * ffmpeg
