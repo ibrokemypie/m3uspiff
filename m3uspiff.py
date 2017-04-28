@@ -25,7 +25,7 @@ def parse_m3u(m3ufile, playlist):
 def mdata(path, track_element):
     """Find the metadata of each accesible file, and format as XML."""
     # Define list of tags to search for
-    tags = {"title", "artist", "album", "genre", "recording date", "label"}
+    tags = ["title", "artist", "album", "genre", "recording date", "label"]
     # Define ffprobe syntax
     cmd = ['ffprobe', path.rstrip()]
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
@@ -35,22 +35,31 @@ def mdata(path, track_element):
         out = process.stdout.readline()
         # Decode "byte" to UTF-8 for python3
         decoded = out.decode('utf-8')
+        # Iterate over all non-empty lines
         if out != b'':
+            # Remove all whitespace since ffprobe is weird
             linecheck = decoded.replace(" ", "")
+            # Iterate over every tag
             for tag in tags:
-                tagstring = tag+":"
+                # Actual string to search for, formatted same (no whitespace)
+                tagstring = tag.replace(" ", "")+":"
                 if linecheck.startswith(tagstring):
+                    # Remove found tag from list to prevent dupes
+                    tags.remove(tag)
+
                     stringf = decoded.split(': ')[1]
-                    ttag = tag
+                    # Name of XML sub-element is name of tag
+                    treetag = tag
 
                     # Replace tag names acording to spec
                     if tag == "artist":
-                        ttag = "creator"
+                        treetag = "creator"
                     if tag == "genre":
-                        ttag = "info"
+                        treetag = "info"
 
-                    ttag = SubElement(track_element, ttag)
-                    ttag.text = stringf.rstrip()
+                    # Actually add the new sub-elements to tree
+                    treetag = SubElement(track_element, treetag)
+                    treetag.text = stringf.rstrip()
         else:
             break
 
