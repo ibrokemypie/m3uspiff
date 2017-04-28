@@ -9,14 +9,21 @@ if len(sys.argv) != 2:
     print str(sys.argv)
     raise NameError('Please enter ONE argument')
 
-#create xml containing playlist and tracklist
-playlist = etree.Element("playlist")
-playlist.set("version", "1")
-playlist.set("xmlns", "http://xspf.org/ns/0/")
-trackList = etree.SubElement(playlist, "trackList")
+def parse_m3u(m3ufile, playlist):
+    """Reads the lines of the input file"""
+    track_list = etree.SubElement(playlist, "trackList")
+    for line in open(m3ufile):
+        #strip any of the extended m3u ickiness
+        if not line.lstrip().startswith('#'):
+            #create "track" subtree
+            track_element = etree.SubElement(track_list, "track")
+            #add location straight away
+            location_element = etree.SubElement(track_element, "location")
+            location_element.text = line.rstrip()
+            #now find the other tags
+            mdata(line, track_element)
 
-#metadata function
-def mdata(path):
+def mdata(path, track_element):
     """Find the metadata of each accesible file, and format as XML."""
     #Define list of tags to search for
     tags = {"title", "artist", "album", "genre", "recording date", "label"}
@@ -29,33 +36,33 @@ def mdata(path):
         if out != b'':
             linecheck = out.replace(" ", "")
             for tag in tags:
-                tagString = tag+":"
-                if tagString in linecheck:
+                tagstring = tag+":"
+                if tagstring in linecheck:
                     stringf = out.split(': ')[1]
                     ttag = tag
                     if tag == "artist":
                         ttag = "creator"
                     if tag == "genre":
                         ttag = "info"
-                    ttag = etree.SubElement(trackT, tag)
+                    ttag = etree.SubElement(track_element, tag)
                     ttag.text = stringf.rstrip()
         else:
             break
 
-#get lines from input file
-for line in open(sys.argv[1]):
-    #strip any of the extended m3u ickiness
-    if not line.lstrip().startswith('#'):
-        #create "track" subtree
-        trackT = etree.SubElement(trackList, "track")
-        #add location straight away
-        locationT = etree.SubElement(trackT, "location")
-        locationT.text = line.rstrip()
-        #now find the other tags
-        mdata(line)
+def write_file(m3ufile, playlist):
+    """Saves the string of the XML to the new XSPF file."""
+    tree = etree.tostring(playlist, xml_declaration=True, encoding="utf-8", pretty_print=True)
+    new_file = open(m3ufile+".xspf", "w")
+    new_file.write(tree)
+    new_file.close()
 
-#save the final xspf to file
-tree = etree.tostring(playlist, xml_declaration=True, encoding="utf-8", pretty_print=True)
-newFile = open(sys.argv[1]+".xspf", "w")
-newFile.write(tree)
-newFile.close()
+def main():
+    """Main function"""
+    playlist = etree.Element("playlist")
+    playlist.set("version", "1")
+    playlist.set("xmlns", "http://xspf.org/ns/0/")
+    argument = sys.argv[1]
+    parse_m3u(argument, playlist)
+    write_file(argument, playlist)
+
+main()
