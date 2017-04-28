@@ -2,7 +2,9 @@
 """Parse M3U playlists and generate XSPF playlist based on resolved tags."""
 import sys
 import subprocess
-from lxml import etree
+from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.dom import minidom
+
 
 # Require one argument
 if len(sys.argv) != 2:
@@ -12,14 +14,14 @@ if len(sys.argv) != 2:
 
 def parse_m3u(m3ufile, playlist):
     """Reads the lines of the input file"""
-    track_list = etree.SubElement(playlist, "trackList")
+    track_list = SubElement(playlist, "trackList")
     for line in open(m3ufile):
         # strip any of the extended m3u ickiness
         if not line.lstrip().startswith('#'):
             # create "track" subtree
-            track_element = etree.SubElement(track_list, "track")
+            track_element = SubElement(track_list, "track")
             # add location straight away
-            location_element = etree.SubElement(track_element, "location")
+            location_element = SubElement(track_element, "location")
             location_element.text = line.rstrip()
             # now find the other tags
             mdata(line, track_element)
@@ -47,7 +49,7 @@ def mdata(path, track_element):
                         ttag = "creator"
                     if tag == "genre":
                         ttag = "info"
-                    ttag = etree.SubElement(track_element, tag)
+                    ttag = SubElement(track_element, tag)
                     ttag.text = stringf.rstrip()
         else:
             break
@@ -55,16 +57,15 @@ def mdata(path, track_element):
 
 def write_file(m3ufile, playlist):
     """Saves the string of the XML to the new XSPF file."""
-    tree = etree.tostring(playlist, xml_declaration=True, encoding="utf-8",
-                          pretty_print=True)
+    prettyxml = minidom.parseString(tostring(playlist, 'utf-8'))
     new_file = open(m3ufile+".xspf", "w")
-    new_file.write(tree)
+    new_file.write(prettyxml.toprettyxml(indent="  "))
     new_file.close()
 
 
 def main():
     """Main function"""
-    playlist = etree.Element("playlist")
+    playlist = Element("playlist")
     playlist.set("version", "1")
     playlist.set("xmlns", "http://xspf.org/ns/0/")
     argument = sys.argv[1]
