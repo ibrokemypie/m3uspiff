@@ -39,7 +39,7 @@ def mdata(path, track_element):
             for tag in tags:
                 tagstring = tag+":"
                 if tagstring in linecheck:
-                    stringf = out.split(': ')[1]
+                    stringf = decoded.split(': ')[1]
                     ttag = tag
                     if tag == "artist":
                         ttag = "creator"
