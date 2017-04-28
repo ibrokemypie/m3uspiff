@@ -45,7 +45,7 @@ def mdata(path, track_element):
                         ttag = "creator"
                     if tag == "genre":
                         ttag = "info"
-                    ttag = SubElement(track_element, tag)
+                    ttag = SubElement(track_element, ttag)
                     ttag.text = stringf.rstrip()
         else:
             break
